@@ -11,8 +11,6 @@ _dP = LL_dev._dP
 #os.chdir() = change cwd
 #os.listdir = all files in a dir
 
-DEV_MODE = 1
-
 """
 If your build is failing here
 then you didn't install the 
