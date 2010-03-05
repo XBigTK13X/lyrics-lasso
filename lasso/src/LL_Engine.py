@@ -10,15 +10,17 @@ import time
 import sys
 import getopt
 import os
-
+import LL_dev
+_dP = LL_dev._dP
+#os.getcwd() = current dir
+#os.chdir() = change cwd
+#os.listdir = all files in a dir
 
 #Debugging Variables
 DEV_MODE = 1 #This will quiet all the "print" statements
 
 #iff Dev Mode on, then output to screen
-def _dP(a):
-    if(DEV_MODE):
-        print a
+
 def main():
     #This is the single MP3 file being handled at the momenent
     _dP(os.getcwd())
@@ -75,3 +77,6 @@ def main():
     curMP3[u"USLT::'eng'"].desc=u''
     curMP3.save()
     _dP("ALL FINISHED!")
+
+#Comment this out for the real application
+main()

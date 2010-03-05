@@ -5,8 +5,11 @@ to handle more than one MP3 at a time
 
 import wx
 import os
+import LL_dev
+_dP = LL_dev._dP
 #os.getcwd() = current dir
 #os.chdir() = change cwd
+#os.listdir = all files in a dir
 
 DEV_MODE = 1
 
