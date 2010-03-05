@@ -4,6 +4,11 @@ to handle more than one MP3 at a time
 """
 
 import wx
+import os
+#os.getcwd() = current dir
+#os.chdir() = change cwd
+
+DEV_MODE = 1
 
 """
 If your build is failing here
@@ -14,7 +19,17 @@ See the README for help
 """
 def main():
     #Initialize wxWidgets
-    wxApp = wx.App()
+    
+    #This class handles the bulk of what is within the main wxApp
+    #You can ignore any "Undefined variable from import: [Component Name]" 
+    # notices, unless your build actually fails
+    class wxMain(wx.Frame):
+        def __init__(self,parent,title):
+            wx.Frame.__init__(self,parent,title=title,size=(200,100))
+            
+    #Setup an application to store frame
+    #BUT DO NOT REDIRECT I/O TO THE GUI!!! (False)
+    wxApp = wx.App(False)
     topFrame = wx.Frame(None, -1, 'Lyrics Lasso')
     #topFrame.SetDimensions()
     topFrame.Show()

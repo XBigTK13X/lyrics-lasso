@@ -8,8 +8,9 @@ from mutagen.id3 import ID3
 import httplib
 import time
 import sys
+import getopt
+import os
 
-print sys.argv
 
 #Debugging Variables
 DEV_MODE = 1 #This will quiet all the "print" statements
@@ -20,7 +21,8 @@ def _dP(a):
         print a
 def main():
     #This is the single MP3 file being handled at the momenent
-    curMP3 = ID3("example.mp3")
+    _dP(os.getcwd())
+    curMP3 = ID3("C:\Users\KRETST\Documents\workspace\Lyrics_Lasso\src\example.mp3")
     
     #This is a built in query service through 'lyricsfly'
     #Plugin based architecture (in the future) will provide
