@@ -84,12 +84,16 @@ def main():
     [2] = Current file being lyric analyzed
     [3] = Operation mode
     """
-    curDir = sys.argv[1] #string 'c:\xyz\dirName'
-    curTarget = sys.argv[2] #string '\filename.mp3'
-    opMode = int(sys.argv[3]) #Integer -> 1:x
-    if os.getcwd() != curDir:
-        os.chdir(curDir)
-        
+    if(len(sys.argv)==3):#simple error checking, noone should be accessing the binary by itself
+                            #so we don't need much error checking
+        curDir = sys.argv[1] #string 'c:\xyz\dirName'
+        curTarget = sys.argv[2] #string '\filename.mp3'
+        opMode = int(sys.argv[3]) #Integer -> 1:x
+        if os.getcwd() != curDir:
+            os.chdir(curDir)
+    else:
+        _dP("INCORRECT NUMBER OF ARGUMENTS PASSED!\nUSAGE: 'LL_Engine.py path file opMode'\nExiting...")
+        return
     #This is the single MP3 file being handled at the momenent
     curMP3 = ID3(""+os.getcwd()+"\\"+curTarget+"")
     if opMode == 1:
@@ -98,7 +102,8 @@ def main():
     if opMode == 2:
         StripLyrics(curMP3)
         return
-    _dP("opMode is out of range!")
+    _dP("opMode IS OUT OF RANGE!")
 
-#Comment this out for the real application
-main()
+#Comment this out for the final binary application
+if(LL_dev.DEV_MODE):
+        main()
