@@ -5,6 +5,8 @@ to handle more than one MP3 at a time
 
 import os
 import LL_dev
+import LL_Engine
+from wx._core import EVT_MENU
 _dP = LL_dev._dP
 #os.getcwd() = current dir
 #os.chdir() = change cwd
@@ -24,6 +26,12 @@ import wx
 ID_ABOUT = wx.NewId()
 ID_EXIT  = wx.NewId()
 ID_OPEN = wx.NewId()
+ID_TIMER = wx.NewId()
+
+#These global variables will be used to track the 
+#current working directory and current working file
+currentFileName = ""
+currentDirectory = os.getcwd()
 
 #This is the bulk of the GUI's programming
 #This will be the class used to generate 
@@ -58,24 +66,58 @@ class mainFrame(wx.Frame):
         #Tacks it onto the frame holding everything
         self.SetMenuBar(menuBar)
         
-        #If you don't know much about Event driven applicaitons
+        #If you don't know much about Event driven applications
         #Then I recommend reading up on them here:
         #http://en.wikipedia.org/wiki/Event-driven_programming
         
-        #Updates information constantly within the application
-        #This allows the Status Bar to be refreshed
-        def UpdateTicker(event):
-            if(self.StatusBar.GetStatusText()!="CWD: " + os.getcwd()):
-                self.SetStatusText("CWD: " + os.getcwd())
+        #These events are what handle each menu item's 
+        #resulting actions when clicked. Read the functions
+        #(the last arguments passed to each
+        #event handler) to get a better idea
+        #of how each event works
+        
+        EVT_MENU(self,ID_OPEN,self.OpenFile)
+        EVT_MENU(self,ID_EXIT,self.CloseApp)
+        EVT_MENU(self,ID_ABOUT,self.AboutApp)
             
         #This section sets up and starts the Timer
         #This doesn't need to be modified to update more
         #items in the window. Just add whatever else you want
         #updated to the "UpdateTicker" function above
-        ID_TIMER = wx.NewId()
         self.UpdateTimer = wx.Timer(self,ID_TIMER)
         self.UpdateTimer.Start(1)
-        wx.EVT_TIMER(self,ID_TIMER,UpdateTicker)
+        wx.EVT_TIMER(self,ID_TIMER,self.UpdateTicker)
+        
+    #Updates information constantly within the application
+    #This allows the Status Bar to be refreshed
+    def UpdateTicker(self,event):
+        if(self.StatusBar.GetStatusText()!="CWD: " + currentDirectory):
+            self.SetStatusText("CWD: " + currentDirectory)
+        
+    #Allows the user to open a single file
+    def OpenFile(self,event):
+        openDialog = wx.FileDialog(self,"Choose an MP3 to open...")
+        #openDialog.SetStyle(wx.OPEN)
+        typeSearch = "Music Files (.mp3) |*.mp3|"
+        openDialog.SetWildcard(typeSearch)
+        openDialog.ShowModal()
+        currentFileName = openDialog.GetFilename()
+        currentDirectory = openDialog.GetDirectory()
+        print(currentDirectory + " " + currentFileName)
+        openDialog.Destroy()
+    
+    #Closes the program when a user selects "Exit"
+    def CloseApp(self,event):
+        self.UpdateTimer.Stop()
+        self.Close(True)
+        
+    #Displays the "About" dialog box
+    def AboutApp(self,event):
+        #This displays the text, "OK" button, and Window icon for the dialog
+        aboutDialog = wx.MessageDialog(self,"Lyrics Lasso\n\nCreated by Timothy 'XBigTK13X' Kretschmer and Bethany Clark\n\nVisit 'http://code.google.com/p/lyricslasso/' for more information.","About")
+        aboutDialog.Centre()
+        aboutDialog.ShowModal()
+        aboutDialog.Destroy()
 
 #wx Applications are basically the "Main" functions
 #for wxPython. This class' instance will allow us to 
@@ -93,6 +135,7 @@ class mainApp(wx.App):
         #This tells the "MainLoop" that everything was created withou error
         return True
 
+#This sets up a new application for us to utilize
 app = mainApp(0)
 #This is a function that we will not touch. All of 
 #our interaction is done through the events defined
