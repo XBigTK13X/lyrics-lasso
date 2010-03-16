@@ -4,6 +4,5 @@
 #multi-threading in the future) 
 
 import LL_GUI
-LL_GUI.main()
 
 

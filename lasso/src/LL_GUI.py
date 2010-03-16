@@ -31,7 +31,7 @@ ID_TIMER = wx.NewId()
 #These global variables will be used to track the 
 #current working directory and current working file
 currentFileName = ""
-currentDirectory = os.getcwd()
+ENGINE = LL_Engine.Engine()
 
 #This is the bulk of the GUI's programming
 #This will be the class used to generate 
@@ -91,8 +91,8 @@ class mainFrame(wx.Frame):
     #Updates information constantly within the application
     #This allows the Status Bar to be refreshed
     def UpdateTicker(self,event):
-        if(self.StatusBar.GetStatusText()!="CWD: " + currentDirectory):
-            self.SetStatusText("CWD: " + currentDirectory)
+        if(self.StatusBar.GetStatusText()!="CWD: " + os.getcwd()):
+            self.SetStatusText("CWD: " + os.getcwd())
         
     #Allows the user to open a single file
     def OpenFile(self,event):
@@ -102,8 +102,7 @@ class mainFrame(wx.Frame):
         openDialog.SetWildcard(typeSearch)
         openDialog.ShowModal()
         currentFileName = openDialog.GetFilename()
-        currentDirectory = openDialog.GetDirectory()
-        print(currentDirectory + " " + currentFileName)
+        os.chdir(openDialog.GetDirectory())
         openDialog.Destroy()
     
     #Closes the program when a user selects "Exit"

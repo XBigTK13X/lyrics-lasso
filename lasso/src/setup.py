@@ -12,4 +12,4 @@ To build on Windows enter the following on the Command Prompt
 from distutils.core import setup
 import py2exe
 
-setup(console=['LL_main.py'])
+setup(windows=['LL_main.py'])
