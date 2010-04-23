@@ -27,6 +27,8 @@ ID_ABOUT = wx.NewId()
 ID_EXIT  = wx.NewId()
 ID_OPEN = wx.NewId()
 ID_TIMER = wx.NewId()
+ID_CLEAR = wx.NewId()
+ID_WRITE = wx.NewId()
 
 #These global variables will be used to track the 
 #current working directory and current working file
@@ -36,6 +38,8 @@ ENGINE = LL_Engine.Engine()
 #This is the bulk of the GUI's programming
 #This will be the class used to generate 
 #The application's main frame
+
+
 class mainFrame(wx.Frame):
     #Standard class requirement
     #This function is what is called when
@@ -54,6 +58,8 @@ class mainFrame(wx.Frame):
         fileMenu = wx.Menu()
         fileMenu.Append(ID_OPEN, "&Open")
         fileMenu.Append(ID_EXIT, "E&xit")
+        fileMenu.Append(ID_WRITE, "&Write All")
+        fileMenu.Append(ID_CLEAR, "&Clear All")
         #Another Menu
         helpMenu = wx.Menu()
         helpMenu.Append(ID_ABOUT, "&About")
@@ -65,6 +71,13 @@ class mainFrame(wx.Frame):
         #This takes the newly created Menu Bar and 
         #Tacks it onto the frame holding everything
         self.SetMenuBar(menuBar)
+        
+        #This list control is what displays
+        #all of the information about the
+        #files in the CWD
+        #mp3List = wx.ListBox(self)
+        self.mp3List = wx.ListCtrl(self, style = wx.LC_REPORT)
+        self.FillList()
         
         #If you don't know much about Event driven applications
         #Then I recommend reading up on them here:
@@ -79,6 +92,8 @@ class mainFrame(wx.Frame):
         EVT_MENU(self,ID_OPEN,self.OpenFile)
         EVT_MENU(self,ID_EXIT,self.CloseApp)
         EVT_MENU(self,ID_ABOUT,self.AboutApp)
+        EVT_MENU(self,ID_CLEAR,self.ClearAll)
+        EVT_MENU(self,ID_WRITE,self.WriteAll)
             
         #This section sets up and starts the Timer
         #This doesn't need to be modified to update more
@@ -101,8 +116,9 @@ class mainFrame(wx.Frame):
         typeSearch = "Music Files (.mp3) |*.mp3|"
         openDialog.SetWildcard(typeSearch)
         openDialog.ShowModal()
-        currentFileName = openDialog.GetFilename()
+        #DELETE-currentFileName = openDialog.GetFilename()
         os.chdir(openDialog.GetDirectory())
+        self.FillList()
         openDialog.Destroy()
     
     #Closes the program when a user selects "Exit"
@@ -117,6 +133,30 @@ class mainFrame(wx.Frame):
         aboutDialog.Centre()
         aboutDialog.ShowModal()
         aboutDialog.Destroy()
+
+    def WriteAll(self,event):
+        for i in range(self.mp3List.GetItemCount()):
+            curMP3 = self.mp3List.GetItem(i,0).GetText()
+            _dP(curMP3 + "____" + os.getcwd() + "____")
+            ENGINE.main([os.getcwd(),str(curMP3),1])
+            
+    def ClearAll(self,event):
+        for i in range(self.mp3List.GetItemCount()):
+            curMP3 = self.mp3List.GetItem(i,0).GetText()
+            ENGINE.main([os.getcwd(),str(curMP3),2])
+
+    #Populates the List Control with the the CWD's mp3 files
+    def FillList(self):
+        self.mp3List.ClearAll()
+        self.mp3List.InsertColumn(0,"Filename")
+        self.mp3List.InsertColumn(1,"Has Lyrics")
+        rawList = os.listdir(os.getcwd())
+        for i in range(len(rawList)):
+            if(str(rawList[i]).find(".mp3")!=-1):
+                hasL = ENGINE.main([os.getcwd(),str(rawList[i]),3])
+                _dP(hasL)
+                self.mp3List.InsertStringItem(self.mp3List.GetItemCount(),str(rawList[i]))
+                self.mp3List.SetStringItem(self.mp3List.GetItemCount()-1,1,str(hasL))
 
 #wx Applications are basically the "Main" functions
 #for wxPython. This class' instance will allow us to 

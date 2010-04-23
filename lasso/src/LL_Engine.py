@@ -22,7 +22,7 @@ class Engine():
         curMP3[u"USLT::'eng'"].lang = 'eng'
         curMP3[u"USLT::'eng'"].desc=u''
         curMP3.save()
-        _dP("ALL FINISHED!")    
+        _dP("ALL FINISHED!")
         
     #This is a built in query service through 'lyricsfly'
     #Plugin based architecture (in the future) will provide
@@ -34,7 +34,7 @@ class Engine():
         _dP("Querying database. Arist is '"+str(curMP3['TPE2'])+"' and Title is '"+str(curMP3['TIT2'])+"'...")
         connection = httplib.HTTPConnection("api.lyricsfly.com")
         #This if the format to use lyricsfly
-        connection.request("GET","/api/api.php?i=e9058775b534412ca-temporary.API.access&a="+str(curMP3['TPE2'])+"&t="+str(curMP3['TIT2'])+"")
+        connection.request("GET","/api/api.php?i=18182080a0933cd8d-temporary.API.access&a="+str(curMP3['TPE2'])+"&t="+str(curMP3['TIT2'])+"")
         response = connection.getresponse()
         if(response.status is 200):
             _dP("QUERY WAS SUCCESSFULLY HANDLED BY THE SITE!")
@@ -48,7 +48,7 @@ class Engine():
     #Then it embeds those lyrics into the passed MP3 file
     def EmbedLyrics(self,curMP3):
         #Query the database and store resulting repsonse in an object
-        data = self.getData(self,curMP3)
+        data = self.getData(curMP3)
         #Used to fix IP throttle limitations
         slpTime = 5
         #Basically, just keep waiting longer if your IP is being throttled
@@ -71,8 +71,28 @@ class Engine():
     
     def StripLyrics(self,curMP3):
         _dP('Stripping lyrics...')
-        self.WriteLyrics(self,"",curMP3)
+        self.WriteLyrics("",curMP3)
     
+    def GetLyrics(self,curMP3):
+        return curMP3[u"USLT::'eng'"].text
+    
+    def HasLyrics(self,curMP3):
+        _dP('Checking MP3s lyrics status...')
+        curLyr="Empty"
+        #This protects us from reading a non-existance key entry in the ID3 tag
+        while(curLyr=="Empty"):
+            try:
+                curLyr = curMP3[u"USLT::'eng'"].text
+                break;
+            except KeyError:
+                curLyr = curMP3[u"USLT::'eng'"] = id3.USLT()
+        if(curLyr == "" or self.GetLyrics(curMP3)==id3.USLT().text):
+            _dP("Lyrics don't!")
+            return "No"
+        else:
+            _dP("Lyrics exist!")
+            return "Yes"
+        
     def main(self,argv):
         #Get arguments passed on the command line or from the GUI
         """
@@ -86,9 +106,12 @@ class Engine():
         """
         if(len(argv)==3):#simple error checking, noone should be accessing the binary by itself
                                 #so we don't need much error checking
-            curDir = argv[1] #string 'c:\xyz\dirName'
-            curTarget = argv[2] #string '\filename.mp3'
-            opMode = int(argv[3]) #Integer -> 1:x
+            curDir = argv[0] #string 'c:\xyz\dirName'
+            curTarget = argv[1] #string '\filename.mp3'
+            opMode = int(argv[2]) #Integer -> 1:x
+            print argv[0]
+            print argv[1]
+            print argv[2]
             if os.getcwd() != curDir:
                 os.chdir(curDir)
         else:
@@ -99,7 +122,10 @@ class Engine():
         if opMode == 1:
             self.EmbedLyrics(curMP3)
             return
-        if opMode == 2:
+        elif opMode == 2:
             self.StripLyrics(curMP3)
             return
-        _dP("opMode IS OUT OF RANGE!")
+        elif opMode == 3:
+            return self.HasLyrics(curMP3)
+        else:
+            _dP("opMode IS OUT OF RANGE!")
