@@ -69,15 +69,13 @@ class Engine():
         #Writing newly found lyrics data to the MP3 in iTunes compatible format
         self.WriteLyrics(lyrString,curMP3)
     
+    #Remove lyrics from the MP3 file
     def StripLyrics(self,curMP3):
         _dP('Stripping lyrics...')
         self.WriteLyrics("",curMP3)
     
-    def GetLyrics(self,curMP3):
-        return curMP3[u"USLT::'eng'"].text
-    
-    def HasLyrics(self,curMP3):
-        _dP('Checking MP3s lyrics status...')
+    #Prevents bad access of a non-existant lyrics tag
+    def CreateLyricsTag(self,curMP3):
         curLyr="Empty"
         #This protects us from reading a non-existance key entry in the ID3 tag
         while(curLyr=="Empty"):
@@ -86,6 +84,17 @@ class Engine():
                 break;
             except KeyError:
                 curLyr = curMP3[u"USLT::'eng'"] = id3.USLT()
+        return curLyr
+    
+    #Retrives the lyrics tag stored in the current MP3 file
+    def GetLyrics(self,curMP3):
+        self.CreateLyricsTag(curMP3)
+        return curMP3[u"USLT::'eng'"].text
+    
+    #Returns the current state of lyrics existence for the curMP3 file
+    def HasLyrics(self,curMP3):
+        curLyr = self.CreateLyricsTag(curMP3)
+        _dP('Checking MP3s lyrics status...')
         if(curLyr == "" or self.GetLyrics(curMP3)==id3.USLT().text):
             _dP("Lyrics don't!")
             return "No"
@@ -127,5 +136,7 @@ class Engine():
             return
         elif opMode == 3:
             return self.HasLyrics(curMP3)
+        elif opMode == 4: 
+            return self.GetLyrics(curMP3)
         else:
             _dP("opMode IS OUT OF RANGE!")

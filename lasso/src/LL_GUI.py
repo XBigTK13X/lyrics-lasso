@@ -25,7 +25,9 @@ import wx
 #items for menus later on
 ID_ABOUT = wx.NewId()
 ID_EXIT  = wx.NewId()
-ID_OPEN = wx.NewId()
+ID_OPENDIR = wx.NewId()
+ID_OPENFILE = wx.NewId()
+ID_SHOW_LYRICS = wx.NewId()
 ID_TIMER = wx.NewId()
 ID_CLEAR = wx.NewId()
 ID_WRITE = wx.NewId()
@@ -56,10 +58,13 @@ class mainFrame(wx.Frame):
         #of a window. In Eclipse, "File", "Edit", etc. are each 
         #a separate menu entity
         fileMenu = wx.Menu()
-        fileMenu.Append(ID_OPEN, "&Open")
-        fileMenu.Append(ID_EXIT, "E&xit")
+        fileMenu.Append(ID_OPENFILE, "&Open File")
+        fileMenu.Append(ID_OPENDIR, "Change &Directory")
+        fileMenu.Append(ID_SHOW_LYRICS, "Display &Lyrics")
         fileMenu.Append(ID_WRITE, "&Write All")
         fileMenu.Append(ID_CLEAR, "&Clear All")
+        fileMenu.Append(ID_EXIT, "E&xit")
+        
         #Another Menu
         helpMenu = wx.Menu()
         helpMenu.Append(ID_ABOUT, "&About")
@@ -89,11 +94,13 @@ class mainFrame(wx.Frame):
         #event handler) to get a better idea
         #of how each event works
         
-        EVT_MENU(self,ID_OPEN,self.OpenFile)
+        EVT_MENU(self,ID_OPENFILE,self.OpenFile)
+        EVT_MENU(self,ID_OPENDIR,self.OpenDirectory)
         EVT_MENU(self,ID_EXIT,self.CloseApp)
         EVT_MENU(self,ID_ABOUT,self.AboutApp)
         EVT_MENU(self,ID_CLEAR,self.ClearAll)
         EVT_MENU(self,ID_WRITE,self.WriteAll)
+        EVT_MENU(self,ID_SHOW_LYRICS,self.LyricsDialog)
             
         #This section sets up and starts the Timer
         #This doesn't need to be modified to update more
@@ -103,12 +110,16 @@ class mainFrame(wx.Frame):
         self.UpdateTimer.Start(1)
         wx.EVT_TIMER(self,ID_TIMER,self.UpdateTicker)
         
+    #Handles the right click context menu for each item in the ListCtrl
+    #def RightClickContext(self,event):
+        #self.list_item_clicked = right_click_context = event.GetText()
+        
     #Updates information constantly within the application
     #This allows the Status Bar to be refreshed
     def UpdateTicker(self,event):
         if(self.StatusBar.GetStatusText()!="CWD: " + os.getcwd()):
             self.SetStatusText("CWD: " + os.getcwd())
-        
+    
     #Allows the user to open a single file
     def OpenFile(self,event):
         openDialog = wx.FileDialog(self,"Choose an MP3 to open...")
@@ -117,7 +128,18 @@ class mainFrame(wx.Frame):
         openDialog.SetWildcard(typeSearch)
         openDialog.ShowModal()
         #DELETE-currentFileName = openDialog.GetFilename()
-        os.chdir(openDialog.GetDirectory())
+        self.AppendToList(openDialog.GetFilename(),openDialog.GetDirectory())
+        openDialog.Destroy()
+    
+    #Allows the user to open a directory
+    def OpenDirectory(self,event):
+        openDialog = wx.DirDialog(self,"Choose a directory to open...")
+        #openDialog.SetStyle(wx.OPEN)
+        #DEL typeSearch = "Music Files (.mp3) |*.mp3|"
+        #DELopenDialog.SetWildcard(typeSearch)
+        openDialog.ShowModal()
+        #DELETE-currentFileName = openDialog.GetFilename()
+        os.chdir(openDialog.GetPath())
         self.FillList()
         openDialog.Destroy()
     
@@ -133,30 +155,55 @@ class mainFrame(wx.Frame):
         aboutDialog.Centre()
         aboutDialog.ShowModal()
         aboutDialog.Destroy()
-
+        
+    #Tries to find and write lyrics to every file in the ListCtrl
     def WriteAll(self,event):
         for i in range(self.mp3List.GetItemCount()):
             curMP3 = self.mp3List.GetItem(i,0).GetText()
             _dP(curMP3 + "____" + os.getcwd() + "____")
             ENGINE.main([os.getcwd(),str(curMP3),1])
             
+    #Strips the lyrics out of all the files in the ListCtrl        
     def ClearAll(self,event):
         for i in range(self.mp3List.GetItemCount()):
             curMP3 = self.mp3List.GetItem(i,0).GetText()
             ENGINE.main([os.getcwd(),str(curMP3),2])
+    
+    #Displays the lyrics of the currently highlighted file
+    def LyricsDialog(self,event):
+        curItem = self.mp3List.GetFirstSelected()
+        if(curItem!=-1):
+            curMP3 = self.mp3List.GetItemText(curItem)
+            curPath = self.mp3List.GetItem(curItem,2)
+            curPath = curPath.GetText()
+            oCWD = os.getcwd()
+            os.chdir(curPath)
+            diag = wx.MessageDialog(self,ENGINE.main([os.getcwd(),curMP3,4]),"Lyrics Viewer")
+            diag.Centre()
+            diag.ShowModal()
+            diag.Destroy()
+            os.chdir(oCWD)    
 
+    #Appends a single MP3 file to the ListCtrl
+    def AppendToList(self,curMP3,curPath):
+        hasL = ENGINE.main([curPath,str(curMP3),3])
+        self.mp3List.InsertStringItem(self.mp3List.GetItemCount(),str(curMP3))
+        self.mp3List.SetStringItem(self.mp3List.GetItemCount()-1,1,str(hasL))
+        self.mp3List.SetStringItem(self.mp3List.GetItemCount()-1,2,str(curPath))
+        
     #Populates the List Control with the the CWD's mp3 files
     def FillList(self):
         self.mp3List.ClearAll()
         self.mp3List.InsertColumn(0,"Filename")
         self.mp3List.InsertColumn(1,"Has Lyrics")
+        self.mp3List.InsertColumn(2,"Path")
         rawList = os.listdir(os.getcwd())
         for i in range(len(rawList)):
             if(str(rawList[i]).find(".mp3")!=-1):
                 hasL = ENGINE.main([os.getcwd(),str(rawList[i]),3])
-                _dP(hasL)
                 self.mp3List.InsertStringItem(self.mp3List.GetItemCount(),str(rawList[i]))
                 self.mp3List.SetStringItem(self.mp3List.GetItemCount()-1,1,str(hasL))
+                self.mp3List.SetStringItem(self.mp3List.GetItemCount()-1,2,str(os.getcwd()))
 
 #wx Applications are basically the "Main" functions
 #for wxPython. This class' instance will allow us to 
@@ -171,7 +218,7 @@ class mainApp(wx.App):
         frame.Show(True)
         #Makes the new frame be displayed above every other window
         self.SetTopWindow(frame)
-        #This tells the "MainLoop" that everything was created withou error
+        #This tells the "MainLoop" that everything was created without error
         return True
 
 #This sets up a new application for us to utilize
