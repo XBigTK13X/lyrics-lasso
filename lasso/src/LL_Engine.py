@@ -11,6 +11,9 @@ import sys
 import os
 import LL_dev
 _dP = LL_dev._dP
+
+apiKey = "bea7444e607cbdf05-temporary.API.access"
+
 class Engine():
     #Actually handles the writing of tags
     #Saves information in iTunes compatible format
@@ -34,7 +37,7 @@ class Engine():
         _dP("Querying database. Arist is '"+str(curMP3['TPE2'])+"' and Title is '"+str(curMP3['TIT2'])+"'...")
         connection = httplib.HTTPConnection("api.lyricsfly.com")
         #This if the format to use lyricsfly
-        connection.request("GET","/api/api.php?i=18182080a0933cd8d-temporary.API.access&a="+str(curMP3['TPE2'])+"&t="+str(curMP3['TIT2'])+"")
+        connection.request("GET","/api/api.php?i=" + apiKey + "&a="+str(curMP3['TPE2'])+"&t="+str(curMP3['TIT2'])+"")
         response = connection.getresponse()
         if(response.status is 200):
             _dP("QUERY WAS SUCCESSFULLY HANDLED BY THE SITE!")
