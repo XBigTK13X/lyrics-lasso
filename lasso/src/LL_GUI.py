@@ -7,6 +7,7 @@ import os
 import LL_dev
 import LL_Engine
 from wx._core import EVT_MENU
+from wx._core import EVT_LIST_ITEM_RIGHT_CLICK
 _dP = LL_dev._dP
 #os.getcwd() = current dir
 #os.chdir() = change cwd
@@ -77,6 +78,12 @@ class mainFrame(wx.Frame):
         #Tacks it onto the frame holding everything
         self.SetMenuBar(menuBar)
         
+        # Right click menu titles
+        rightClickTitles = ["Write Lyrics", "Remove Lyrics"]
+        self.rightClickIds = {}
+        for title in rightClickTitles:
+            self.rightClickIds[ wx.NewId() ] = title
+        
         #This list control is what displays
         #all of the information about the
         #files in the CWD
@@ -101,6 +108,10 @@ class mainFrame(wx.Frame):
         EVT_MENU(self,ID_CLEAR,self.ClearAll)
         EVT_MENU(self,ID_WRITE,self.WriteAll)
         EVT_MENU(self,ID_SHOW_LYRICS,self.LyricsDialog)
+        
+        # Event binding for Right Clicks.
+        EVT_LIST_ITEM_RIGHT_CLICK(self.mp3List, -1, self.RightClickEvent)
+        self.listItemClicked = None
             
         #This section sets up and starts the Timer
         #This doesn't need to be modified to update more
@@ -111,8 +122,30 @@ class mainFrame(wx.Frame):
         wx.EVT_TIMER(self,ID_TIMER,self.UpdateTicker)
         
     #Handles the right click context menu for each item in the ListCtrl
-    #def RightClickContext(self,event):
-        #self.list_item_clicked = right_click_context = event.GetText()
+    def RightClickEvent(self, event):
+        self.listItemClicked = right_click_context = event.GetText()
+        rightClickMenu = wx.Menu()
+        for (id, title) in self.rightClickIds.items():
+            rightClickMenu.Append(id, title)
+            EVT_MENU(rightClickMenu, id, self.ActionSelect)
+        
+        self.PopupMenu(rightClickMenu, event.GetPoint())
+        rightClickMenu.Destroy()
+        
+    def ActionSelect(self, event):
+        operation = self.rightClickIds[event.GetId()]
+        # target = self.listItemClicked
+        target = self.mp3List.GetFirstSelected()
+        curSong = self.mp3List.GetItemText(target)
+        _dP("'" + operation + "' on '" + curSong + "'")
+        if "Write" in operation:
+            #print 'in here'
+            ENGINE.main([os.getcwd(),curSong,1])
+        elif "Remove" in operation:
+            #print 'over here'
+            ENGINE.main([os.getcwd(),curSong,2])
+        else:
+            _dP('unknown right click operation')
         
     #Updates information constantly within the application
     #This allows the Status Bar to be refreshed
