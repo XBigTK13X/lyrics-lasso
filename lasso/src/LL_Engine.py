@@ -12,7 +12,8 @@ import os
 import LL_dev
 _dP = LL_dev._dP
 
-apiKey = "bea7444e607cbdf05-temporary.API.access"
+#Temp key last updated 05/03/2010
+apiKey = "dd159059748d3bd16-temporary.API.access"
 
 class Engine():
     #Actually handles the writing of tags
