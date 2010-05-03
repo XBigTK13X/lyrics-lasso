@@ -59,11 +59,11 @@ class mainFrame(wx.Frame):
         #of a window. In Eclipse, "File", "Edit", etc. are each 
         #a separate menu entity
         fileMenu = wx.Menu()
-        fileMenu.Append(ID_OPENFILE, "&Open File")
         fileMenu.Append(ID_OPENDIR, "Change &Directory")
         fileMenu.Append(ID_SHOW_LYRICS, "Display &Lyrics")
-        fileMenu.Append(ID_WRITE, "&Write All")
+        fileMenu.Append(ID_OPENFILE, "&Append File")
         fileMenu.Append(ID_CLEAR, "&Clear All")
+        fileMenu.Append(ID_WRITE, "&Write All")
         fileMenu.Append(ID_EXIT, "E&xit")
         
         #Another Menu
@@ -194,13 +194,14 @@ class mainFrame(wx.Frame):
         for i in range(self.mp3List.GetItemCount()):
             curMP3 = self.mp3List.GetItem(i,0).GetText()
             _dP(curMP3 + "____" + os.getcwd() + "____")
-            ENGINE.main([os.getcwd(),str(curMP3),1])
+            self.mp3List.SetStringItem(i,1,ENGINE.main([os.getcwd(),str(curMP3),1]))
             
     #Strips the lyrics out of all the files in the ListCtrl        
     def ClearAll(self,event):
         for i in range(self.mp3List.GetItemCount()):
             curMP3 = self.mp3List.GetItem(i,0).GetText()
             ENGINE.main([os.getcwd(),str(curMP3),2])
+            self.mp3List.SetStringItem(i,1,"No")
     
     #Displays the lyrics of the currently highlighted file
     def LyricsDialog(self,event):
