@@ -106,6 +106,11 @@ class Engine():
             _dP("Lyrics exist!")
             return "Yes"
         
+	# This Function simply returns an ID3 Mp3 object
+	# when given a file location. 
+	def GetMp3(self, mp3Directory, mp3Filename):
+		return ID3(""+mp3Directory+"\\"+mp3Filename+"")
+		
     def main(self,argv):
         #Get arguments passed on the command line or from the GUI
         """

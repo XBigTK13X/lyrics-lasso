@@ -6,8 +6,10 @@ to handle more than one MP3 at a time
 import os
 import LL_dev
 import LL_Engine
+from mutagen.id3 import ID3
 from wx._core import EVT_MENU
 from wx._core import EVT_LIST_ITEM_RIGHT_CLICK
+from wx._core import EVT_LIST_ITEM_SELECTED
 _dP = LL_dev._dP
 #os.getcwd() = current dir
 #os.chdir() = change cwd
@@ -21,6 +23,7 @@ wx.Widgets dependencies correctly
 See the README for help
 """
 import wx
+import math
 
 #These call create Stock Item IDs. These are useful in creating
 #items for menus later on
@@ -69,13 +72,14 @@ class mainFrame(wx.Frame):
         #Another Menu
         helpMenu = wx.Menu()
         helpMenu.Append(ID_ABOUT, "&About")
+		
         #The Menu Bar holds every menu instance. It
         #aligns them all along the top of the window
         menuBar = wx.MenuBar()
         menuBar.Append(fileMenu, "&File")
         menuBar.Append(helpMenu, "&Help")
         #This takes the newly created Menu Bar and 
-        #Tacks it onto the frame holding everything
+        #tacks it onto the frame holding everything
         self.SetMenuBar(menuBar)
         
         # Right click menu titles
@@ -88,7 +92,9 @@ class mainFrame(wx.Frame):
         #all of the information about the
         #files in the CWD
         #mp3List = wx.ListBox(self)
-        self.mp3List = wx.ListCtrl(self, style = wx.LC_REPORT)
+        windowSize = self.GetVirtualSize()
+        
+        self.mp3List = wx.ListCtrl(self, style = wx.LC_REPORT, size=(math.floor(windowSize[0]*0.7),windowSize[1]))
         self.FillList()
         
         #If you don't know much about Event driven applications
@@ -112,14 +118,29 @@ class mainFrame(wx.Frame):
         # Event binding for Right Clicks.
         EVT_LIST_ITEM_RIGHT_CLICK(self.mp3List, -1, self.RightClickEvent)
         self.listItemClicked = None
-            
+        # Event binding for Left Clicks.
+        EVT_LIST_ITEM_SELECTED(self.mp3List, -1, self.ShowLyrics)
+        
+        
         #This section sets up and starts the Timer
         #This doesn't need to be modified to update more
         #items in the window. Just add whatever else you want
-        #updated to the "UpdateTicker" function above
+        #updated to the "UpdateTicker" function below
         self.UpdateTimer = wx.Timer(self,ID_TIMER)
         self.UpdateTimer.Start(1)
         wx.EVT_TIMER(self,ID_TIMER,self.UpdateTicker)
+        
+        # The following is a side panel which will show 
+        # currently selected song's lyrics. 
+        #self.lyricsPanel = wx.TextCtrl(self, size=(math.floor(windowSize[0]*0.3),windowSize[1]), style=wx.TE_MULTILINE | wx.TE_READONLY, value="No File Selected.")
+        self.lyricsPanel = wx.TextCtrl(self, size=(200,windowSize[1]), style=wx.TE_MULTILINE | wx.TE_READONLY, value="No File Selected.")
+        
+        # Here the layout of the panels is set up. 
+        self.mainSizer = wx.GridSizer(1,2,4,4)
+        self.mainSizer.Add(self.mp3List, 0, wx.ALIGN_LEFT)
+        self.mainSizer.Add(self.lyricsPanel, 0, wx.ALIGN_RIGHT)
+        
+        self.SetSizer(self.mainSizer)
         
     #Handles the right click context menu for each item in the ListCtrl
     def RightClickEvent(self, event):
@@ -146,12 +167,48 @@ class mainFrame(wx.Frame):
             ENGINE.main([os.getcwd(),curSong,2])
         else:
             _dP('unknown right click operation')
+    
+    # This Function simply returns an ID3 Mp3 object
+	# when given a file location. 
+	def GetMp3(self, mp3Directory, mp3Filename):
+		return ID3(""+mp3Directory+"\\"+mp3Filename+"")
+    
+    # This Function will display the lyrics of the currently
+    # selected song in the lyricsPanel. 
+    def ShowLyrics(self, event):
+        event.GetId()
+        target = self.mp3List.GetFirstSelected()
+        #target = event.GetText()
+        title = self.mp3List.GetItemText(target)
         
+        lyricsText = ENGINE.GetLyrics(ID3(""+os.getcwd()+"\\"+title+""))
+        
+        self.lyricsPanel.ChangeValue(lyricsText)				
+        _dP("Displaying Lyrics for " + title + ".")
+	
+    # This Function will clear the lyricsPanel. 
+    def ClearLyrics(self,event):
+        self.lyricsPanel.ChangeValue("No Lyrics To Display")				
+        _dP("Clearing Lyrics Box.")
+	
+    # This Function will dynamically resize the wondow based on its current state.
+    def Resize(self):
+        windowSize = self.GetVirtualSize()
+        # A few lines that I can't get to work:
+        #self.lyricsPanel.SetSize((math.floor(windowSize[0]*0.3),windowSize[1]))
+        #self.mp3List.SetSize((math.floor(windowSize[0]*0.7),windowSize[1]))
+        
+        # The best working form I can come up with.
+        self.lyricsPanel.SetSize((200,windowSize[1]))
+        self.mp3List.SetSize((math.floor(windowSize[0]-204),windowSize[1]))
+        #Issue: LyricsPanel refuses to change width. Changing its width either does nothing or moves it sideways.
+    
     #Updates information constantly within the application
     #This allows the Status Bar to be refreshed
     def UpdateTicker(self,event):
         if(self.StatusBar.GetStatusText()!="CWD: " + os.getcwd()):
             self.SetStatusText("CWD: " + os.getcwd())
+        self.Resize()
     
     #Allows the user to open a single file
     def OpenFile(self,event):
@@ -184,7 +241,7 @@ class mainFrame(wx.Frame):
     #Displays the "About" dialog box
     def AboutApp(self,event):
         #This displays the text, "OK" button, and Window icon for the dialog
-        aboutDialog = wx.MessageDialog(self,"Lyrics Lasso\n\nCreated by Timothy 'XBigTK13X' Kretschmer and Bethany Clark\n\nVisit 'http://code.google.com/p/lyricslasso/' for more information.","About")
+        aboutDialog = wx.MessageDialog(self,"Lyrics Lasso\n\nCreated by Timothy 'XBigTK13X' Kretschmer, Ken Bellows, and Mike Stark.\n\nVisit 'http://code.google.com/p/lyricslasso/' for more information.","About")
         aboutDialog.Centre()
         aboutDialog.ShowModal()
         aboutDialog.Destroy()
@@ -238,7 +295,7 @@ class mainFrame(wx.Frame):
                 self.mp3List.InsertStringItem(self.mp3List.GetItemCount(),str(rawList[i]))
                 self.mp3List.SetStringItem(self.mp3List.GetItemCount()-1,1,str(hasL))
                 self.mp3List.SetStringItem(self.mp3List.GetItemCount()-1,2,str(os.getcwd()))
-
+				
 #wx Applications are basically the "Main" functions
 #for wxPython. This class' instance will allow us to 
 #control the interaction between the Engine's backend
