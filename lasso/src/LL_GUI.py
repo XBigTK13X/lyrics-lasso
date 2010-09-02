@@ -165,7 +165,7 @@ class mainFrame(wx.Frame):
             #print 'over here'
             ENGINE.main([os.getcwd(),curSong,2])
         else:
-            _L.info('unknown right click operation')
+            _L.info('Unknown right click operation')
     
     # This Function simply returns an ID3 Mp3 object
 	# when given a file location. 
