@@ -4,36 +4,23 @@ to handle more than one MP3 at a time
 """
 
 import os
+import sys
 import LL_dev
 import LL_Engine
-"""
-If your build is failing here then you didn't install the mutagen dependencies correctly
-See the README for help
-"""
 from mutagen.id3 import ID3
+from PyQt4 import QtGui, QtCore
+_dP = LL_dev._dP
+#os.getcwd() = current dir
+#os.chdir() = change cwd
+#os.listdir = all files in a dir
+
 """
-If your build is failing here then you didn't install the wx.Widgets dependencies correctly
+If your build is failing here
+then you didn't install the 
+wx.Widgets dependencies correctly
+
 See the README for help
 """
-from wx._core import EVT_MENU
-from wx._core import EVT_LIST_ITEM_RIGHT_CLICK
-from wx._core import EVT_LIST_ITEM_SELECTED
-
-_L = LL_dev.logger
-
-import wx
-import math
-
-#These call create Stock Item IDs. These are useful in creating
-#items for menus later on
-ID_ABOUT = wx.NewId()
-ID_EXIT  = wx.NewId()
-ID_OPENDIR = wx.NewId()
-ID_OPENFILE = wx.NewId()
-ID_SHOW_LYRICS = wx.NewId()
-ID_TIMER = wx.NewId()
-ID_CLEAR = wx.NewId()
-ID_WRITE = wx.NewId()
 
 #These global variables will be used to track the 
 #current working directory and current working file
@@ -45,36 +32,41 @@ ENGINE = LL_Engine.Engine()
 #The application's main frame
 
 
-class mainFrame(wx.Frame):
+class mainFrame(QtGui.QtWidget):
     #Standard class requirement
     #This function is what is called when
     #creating a new instance of a class
-    def __init__(self, parent, ID, title):
+    def __init__(self, parent=None, title):
         #This creates a new frame. Frames are what hold everything
         #you see in an application's window
-        wx.Frame.__init__(self, parent, ID, title,wx.DefaultPosition, wx.Size(600, 450))
+        QtGui.QMainWindow.__init__(self, parent)
+        self.SetGeometry(600, 450, 250, 250)
+        self.setWindowTitle(title)
+
         #This generates a status bar (The thing in the window
         #that displays the current working directory)
-        self.CreateStatusBar()
-        self.SetStatusText("CWD: "+os.getcwd())
+        self.statusBar().showMesage("CWD: "+os.getcwd())
+        
+        #The Menu Bar holds every menu instance. It
+        #aligns them all along the top of the window
+        menuBar = self.menuBar()
+        
         #Menus are what contain various actions at the top
         #of a window. In Eclipse, "File", "Edit", etc. are each 
         #a separate menu entity
-        fileMenu = wx.Menu()
-        fileMenu.Append(ID_OPENDIR, "Change &Directory")
-        fileMenu.Append(ID_SHOW_LYRICS, "Display &Lyrics")
-        fileMenu.Append(ID_OPENFILE, "&Append File")
-        fileMenu.Append(ID_CLEAR, "&Clear All")
-        fileMenu.Append(ID_WRITE, "&Write All")
-        fileMenu.Append(ID_EXIT, "E&xit")
+        fileMenu = menuBar.addMenu('&File')
+        # fileMenu.Append(ID_OPENDIR, "Change &Directory")
+        # fileMenu.Append(ID_SHOW_LYRICS, "Display &Lyrics")
+        # fileMenu.Append(ID_OPENFILE, "&Append File")
+        # fileMenu.Append(ID_CLEAR, "&Clear All")
+        # fileMenu.Append(ID_WRITE, "&Write All")
+        exit = QtGui.QAction(QtGui.QIcon('icons/exit.png'), 'Exit', self) # fileMenu.Append(ID_EXIT, "E&xit")
         
         #Another Menu
         helpMenu = wx.Menu()
         helpMenu.Append(ID_ABOUT, "&About")
 		
-        #The Menu Bar holds every menu instance. It
-        #aligns them all along the top of the window
-        menuBar = wx.MenuBar()
+        
         menuBar.Append(fileMenu, "&File")
         menuBar.Append(helpMenu, "&Help")
         #This takes the newly created Menu Bar and 
@@ -157,7 +149,7 @@ class mainFrame(wx.Frame):
         # target = self.listItemClicked
         target = self.mp3List.GetFirstSelected()
         curSong = self.mp3List.GetItemText(target)
-        _L.info("'" + operation + "' on '" + curSong + "'")
+        _dP("'" + operation + "' on '" + curSong + "'")
         if "Write" in operation:
             #print 'in here'
             ENGINE.main([os.getcwd(),curSong,1])
@@ -165,7 +157,7 @@ class mainFrame(wx.Frame):
             #print 'over here'
             ENGINE.main([os.getcwd(),curSong,2])
         else:
-            _L.info('Unknown right click operation')
+            _dP('unknown right click operation')
     
     # This Function simply returns an ID3 Mp3 object
     # when given a file location. 
@@ -183,12 +175,12 @@ class mainFrame(wx.Frame):
         lyricsText = ENGINE.GetLyrics(ID3(""+os.getcwd()+"\\"+title+""))
         
         self.lyricsPanel.ChangeValue(lyricsText)				
-        _L.info("Displaying Lyrics for " + title + ".")
+        _dP("Displaying Lyrics for " + title + ".")
 	
     # This Function will clear the lyricsPanel. 
     def ClearLyrics(self,event):
         self.lyricsPanel.ChangeValue("No Lyrics To Display")				
-        _L.info("Clearing Lyrics Box.")
+        _dP("Clearing Lyrics Box.")
 	
     # This Function will dynamically resize the wondow based on its current state.
     def Resize(self):
@@ -249,7 +241,7 @@ class mainFrame(wx.Frame):
     def WriteAll(self,event):
         for i in range(self.mp3List.GetItemCount()):
             curMP3 = self.mp3List.GetItem(i,0).GetText()
-            _L.info(curMP3 + "____" + os.getcwd() + "____")
+            _dP(curMP3 + "____" + os.getcwd() + "____")
             self.mp3List.SetStringItem(i,1,ENGINE.main([os.getcwd(),str(curMP3),1]))
             
     #Strips the lyrics out of all the files in the ListCtrl        
@@ -303,7 +295,7 @@ class mainApp(wx.App):
     #This is called once, the first time the program is run
     def OnInit(self):
         #Creates a new frame instance to hold everything
-        frame = mainFrame(None, -1, "Lyrics Lasso")
+        frame = mainFrame(title="Lyrics Lasso")
         #Makes the frame visible
         frame.Show(True)
         #Makes the new frame be displayed above every other window
