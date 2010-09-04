@@ -55,23 +55,20 @@ class mainFrame(QtGui.QtWidget):
         #of a window. In Eclipse, "File", "Edit", etc. are each 
         #a separate menu entity
         fileMenu = menuBar.addMenu('&File')
-        # fileMenu.Append(ID_OPENDIR, "Change &Directory")
-        # fileMenu.Append(ID_SHOW_LYRICS, "Display &Lyrics")
-        # fileMenu.Append(ID_OPENFILE, "&Append File")
-        # fileMenu.Append(ID_CLEAR, "&Clear All")
-        # fileMenu.Append(ID_WRITE, "&Write All")
-        exit = QtGui.QAction(QtGui.QIcon('icons/exit.png'), 'Exit', self) # fileMenu.Append(ID_EXIT, "E&xit")
+        changeDir = QtGui.QAction(QtGui.QIcon('icons/chngdir.png'), 'Change &Directory', self) # fileMenu.Append(ID_OPENDIR, "Change &Directory")
+        addMp3 = QtGui.QAction(QtGui.QIcon('icons/mp3duck.png'), '&Add Mp3 File', self)# fileMenu.Append(ID_OPENFILE, "&Append File")
+        clearAll = QtGui.QAction(QtGui.QIcon('icons/clear.png'), '&Clear All', self)# fileMenu.Append(ID_CLEAR, "&Clear All")
+        writeAll = QtGui.QAction(QtGui.QIcon('icons/write.png'), '&Write All', self)# fileMenu.Append(ID_WRITE, "&Write All")
+        exitOption = QtGui.QAction(QtGui.QIcon('icons/exit.png'), 'Exit', self) # fileMenu.Append(ID_EXIT, "E&xit")
         
         #Another Menu
-        helpMenu = wx.Menu()
-        helpMenu.Append(ID_ABOUT, "&About")
+        helpMenu = menuBar.addMenu('&Help')
+        changeDir = QtGui.QAction(QtGui.QIcon('icons/about.png'), '&About', self) # helpMenu.Append(ID_ABOUT, "&About")
 		
+        # Here's where I'm at.
+        # I need to figure out the self.connect() functions for each of these guys.
+        #------------------------------------------------------------------------------------
         
-        menuBar.Append(fileMenu, "&File")
-        menuBar.Append(helpMenu, "&Help")
-        #This takes the newly created Menu Bar and 
-        #tacks it onto the frame holding everything
-        self.SetMenuBar(menuBar)
         
         # Right click menu titles
         rightClickTitles = ["Write Lyrics", "Remove Lyrics"]
